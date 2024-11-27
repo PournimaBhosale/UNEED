@@ -1,0 +1,89 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+// Function to solve TSP using Dynamic Programming (Held-Karp Algorithm)
+int tspDP(const vector<vector<int>> &dist, int n)
+{
+    vector<vector<int>> dp(1 << n, vector<int>(n, INT_MAX));
+    dp[1][0] = 0; // Starting point
+
+    for (int mask = 1; mask < (1 << n); mask++)
+    {
+        for (int u = 0; u < n; u++)
+        {
+            if (mask & (1 << u))
+            { // Check if u is in the subset
+                for (int v = 0; v < n; v++)
+                {
+                    if (mask & (1 << v) && v != u)
+                    {
+                        dp[mask][u] = min(dp[mask][u], dp[mask ^ (1 << u)][v] + dist[v][u]);
+                    }
+                }
+            }
+        }
+    }
+
+    int min_cost = INT_MAX;
+    for (int u = 1; u < n; u++)
+    {
+        min_cost = min(min_cost, dp[(1 << n) - 1][u] + dist[u][0]);
+    }
+    return min_cost;
+}
+
+// Function to solve TSP using a Greedy Algorithm
+int tspGreedy(const vector<vector<int>> &dist, int n)
+{
+    vector<bool> visited(n, false);
+    int cost = 0, curr = 0;
+
+    visited[0] = true;
+    for (int i = 1; i < n; i++)
+    {
+        int next = -1, min_cost = INT_MAX;
+        for (int j = 0; j < n; j++)
+        {
+            if (!visited[j] && dist[curr][j] < min_cost)
+            {
+                next = j;
+                min_cost = dist[curr][j];
+            }
+        }
+        cost += min_cost;
+        curr = next;
+        visited[curr] = true;
+    }
+    cost += dist[curr][0]; // Return to the starting point
+    return cost;
+}
+
+// Main function
+int main()
+{
+    int n;
+    cout << "Enter the number of cities: ";
+    cin >> n;
+
+    vector<vector<int>> dist(n, vector<int>(n));
+    cout << "Enter the distance matrix:\n";
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            cin >> dist[i][j];
+        }
+    }
+
+    int dp_solution = tspDP(dist, n);
+    int greedy_solution = tspGreedy(dist, n);
+
+    cout << "\nOptimal solution using Dynamic Programming (Held-Karp): " << dp_solution << endl;
+    cout << "Solution using Greedy Algorithm: " << greedy_solution << endl;
+
+    return 0;
+}
