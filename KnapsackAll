@@ -1,0 +1,184 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+// Function for Dynamic Programming
+int knapsackDP(int W, const vector<int> &weights, const vector<int> &values, int n)
+{
+    vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
+
+    for (int i = 1; i <= n; i++)
+    {
+        for (int w = 1; w <= W; w++)
+        {
+            if (weights[i - 1] <= w)
+            {
+                dp[i][w] = max(dp[i - 1][w], dp[i - 1][w - weights[i - 1]] + values[i - 1]);
+            }
+            else
+            {
+                dp[i][w] = dp[i - 1][w];
+            }
+        }
+    }
+    return dp[n][W];
+}
+
+// Helper function for Backtracking
+void backtrack(int W, const vector<int> &weights, const vector<int> &values, int index, int currWeight, int currValue, int &maxValue)
+{
+    if (index == weights.size())
+    {
+        maxValue = max(maxValue, currValue);
+        return;
+    }
+
+    // Include the current item if it fits
+    if (currWeight + weights[index] <= W)
+    {
+        backtrack(W, weights, values, index + 1, currWeight + weights[index], currValue + values[index], maxValue);
+    }
+    // Exclude the current item
+    backtrack(W, weights, values, index + 1, currWeight, currValue, maxValue);
+}
+
+// Function for Backtracking
+int knapsackBacktracking(int W, const vector<int> &weights, const vector<int> &values)
+{
+    int maxValue = 0;
+    backtrack(W, weights, values, 0, 0, 0, maxValue);
+    return maxValue;
+}
+
+// Node structure for Branch and Bound
+struct Node
+{
+    int level, weight, profit, bound;
+};
+
+// Function to calculate the bound of a node
+int calculateBound(Node u, int n, int W, const vector<int> &weights, const vector<int> &values)
+{
+    if (u.weight >= W)
+        return 0;
+
+    int bound = u.profit;
+    int j = u.level + 1;
+    int totalWeight = u.weight;
+
+    // Add items while there is space
+    while (j < n && totalWeight + weights[j] <= W)
+    {
+        totalWeight += weights[j];
+        bound += values[j];
+        j++;
+    }
+
+    // Add fractional part of the next item
+    if (j < n)
+    {
+        bound += (W - totalWeight) * values[j] / weights[j];
+    }
+    return bound;
+}
+
+// Function for Branch and Bound
+int knapsackBranchAndBound(int W, const vector<int> &weights, const vector<int> &values, int n)
+{
+    queue<Node> Q;
+    Node u, v;
+
+    u.level = -1; // Starting at root
+    u.weight = u.profit = 0;
+    u.bound = calculateBound(u, n, W, weights, values);
+    Q.push(u);
+
+    int maxProfit = 0;
+
+    while (!Q.empty())
+    {
+        u = Q.front();
+        Q.pop();
+
+        if (u.bound > maxProfit)
+        {
+            v.level = u.level + 1;
+
+            // Take the current item
+            v.weight = u.weight + weights[v.level];
+            v.profit = u.profit + values[v.level];
+            if (v.weight <= W && v.profit > maxProfit)
+            {
+                maxProfit = v.profit;
+            }
+            v.bound = calculateBound(v, n, W, weights, values);
+            if (v.bound > maxProfit)
+            {
+                Q.push(v);
+            }
+
+            // Don't take the current item
+            v.weight = u.weight;
+            v.profit = u.profit;
+            v.bound = calculateBound(v, n, W, weights, values);
+            if (v.bound > maxProfit)
+            {
+                Q.push(v);
+            }
+        }
+    }
+    return maxProfit;
+}
+
+// Menu-driven main function
+int main()
+{
+    int n, W;
+    cout << "Enter number of items: ";
+    cin >> n;
+    vector<int> weights(n), values(n);
+
+    cout << "Enter weights of items: ";
+    for (int i = 0; i < n; i++)
+        cin >> weights[i];
+    cout << "Enter values of items: ";
+    for (int i = 0; i < n; i++)
+        cin >> values[i];
+    cout << "Enter maximum weight of knapsack: ";
+    cin >> W;
+
+    while (true)
+    {
+        cout << "\nMenu:\n";
+        cout << "1. Dynamic Programming\n";
+        cout << "2. Backtracking\n";
+        cout << "3. Branch and Bound\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        int choice;
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            cout << "Maximum value using Dynamic Programming: "
+                 << knapsackDP(W, weights, values, n) << endl;
+            break;
+        case 2:
+            cout << "Maximum value using Backtracking: "
+                 << knapsackBacktracking(W, weights, values) << endl;
+            break;
+        case 3:
+            cout << "Maximum value using Branch and Bound: "
+                 << knapsackBranchAndBound(W, weights, values, n) << endl;
+            break;
+        case 4:
+            cout << "Exiting...\n";
+            return 0;
+        default:
+            cout << "Invalid choice. Try again.\n";
+        }
+    }
+}
