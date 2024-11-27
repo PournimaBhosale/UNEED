@@ -1,0 +1,68 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Function to print the chessboard
+void printBoard(const vector<int>& positions, int N) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (positions[i] == j)
+                cout << "Q ";
+            else
+                cout << ". ";
+        }
+        cout << endl;
+    }
+}
+
+// Check if placing a queen at (row, col) is safe
+bool isSafe(const vector<int>& positions, int row, int col) {
+    for (int i = 0; i < row; i++) {
+        // Check column and diagonals
+        if (positions[i] == col || abs(positions[i] - col) == abs(i - row)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Backtracking function to solve the N-Queens problem
+bool solveNQueens(int N, vector<int>& positions, int row) {
+    if (row == N) { // All queens are placed
+        return true;
+    }
+
+    for (int col = 0; col < N; col++) {
+        if (isSafe(positions, row, col)) {
+            positions[row] = col; // Place the queen
+            if (solveNQueens(N, positions, row + 1)) {
+                return true;
+            }
+        }
+    }
+
+    return false; // No valid placement found
+}
+
+// Main function
+int main() {
+    int N;
+    cout << "Enter the value of N for the N-Queens problem: ";
+    cin >> N;
+
+    if (N < 1) {
+        cout << "Invalid input. N must be greater than or equal to 1.\n";
+        return 0;
+    }
+
+    vector<int> positions(N, -1); // Store column positions of queens
+    if (solveNQueens(N, positions, 0)) {
+        cout << "Solution for " << N << "-Queens:\n";
+        printBoard(positions, N);
+    } else {
+        cout << "No solution exists for " << N << "-Queens.\n";
+    }
+
+    return 0;
+}
