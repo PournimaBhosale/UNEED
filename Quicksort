@@ -1,0 +1,68 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
+
+using namespace std;
+
+// Function to partition the array
+int partition(vector<int>& arr, int low, int high) {
+    int pivot = arr[high];
+    int i = low - 1;
+
+    for (int j = low; j < high; ++j) {
+        if (arr[j] < pivot) {
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+// Quick Sort function
+void quickSort(vector<int>& arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+int main() {
+    // Input size
+    int n;
+    cout << "Enter the number of elements: ";
+    cin >> n;
+
+    vector<int> arr(n);
+
+    // Generate random array
+    srand(time(0));
+    for (int i = 0; i < n; ++i) {
+        arr[i] = rand() % 1000; // Random numbers between 0 and 999
+    }
+
+    cout << "Unsorted array: ";
+    for (int i = 0; i < n; ++i) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+
+    // Measure execution time
+    auto start = chrono::high_resolution_clock::now();
+    quickSort(arr, 0, n - 1);
+    auto end = chrono::high_resolution_clock::now();
+
+    cout << "Sorted array: ";
+    for (int i = 0; i < n; ++i) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+
+    chrono::duration<double> elapsed = end - start;
+    cout << "Execution time: " << elapsed.count() << " seconds.\n";
+
+    return 0;
+}
