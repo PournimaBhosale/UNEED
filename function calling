@@ -1,0 +1,4 @@
+ int maxProfit = knapsackDP(W, weights, values, n);
+    cout << "Maximum value that can be obtained: " << maxProfit << endl;
+
+    return 0;
